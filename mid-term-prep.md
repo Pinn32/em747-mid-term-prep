@@ -423,6 +423,17 @@ scale_color_manual(
 )
 ```
 
+### 添加统计量 ink
+
+```r
+# add statistic ink
+stat_summary(
+	fun = mean, geom = "point", 
+	shape = 18, size = 3, color = "red"
+)
+```
+
+
 
 ## 🔹 常用颜色
 
@@ -809,6 +820,127 @@ ggplot(df, aes(x = type1, y = value, fill = type2)) +
 ---
 
 # 🟢 L6-Inferential Statistics
+
+## 🔹 假设检验 Hypothesis Testing
+
+| 函数 | 用途 | 关键参数 |
+|------|------|---------|
+| `t.test(y ~ x, data)` | 独立样本 t 检验 (==只能用于 2 组 cat==) | `paired=TRUE` 配对检验 |
+| `aov(y ~ x, data)` | 单因素方差分析 (3+ 组) | — |
+| `summary(anova_result)` | 查看 ANOVA F 值与 p 值 (不显示配对) | — |
+| `TukeyHSD(anova_result)` | 事后检验 (Tukey HSD)，查看==配对差异== | — |
+
+> **决策规则：** p < 0.05 → 拒绝 H₀；p ≥ 0.05 → 无法拒绝 H₀。
+> ==永远不要说 "accept H₀" / "prove null"==，只能说 "fail to reject H₀"。
+
+**t-test 输出解读：**
+
+| 字段 | 含义 |
+|------|------|
+| `t` | t 统计量 |
+| `df` | 自由度 |
+| `p-value` | 观察到此差异的概率（若 H₀ 为真） |
+| `95% CI` | 真实均值差异的 95% 置信区间 |
+| `mean in group X` | 各组均值 |
+
+**可视化 t-test / ANOVA snippet：**
+
+```r
+# Boxplot + 均值点
+ggplot(df, aes(x = group_var, y = outcome, fill = group_var)) +
+  geom_boxplot(alpha = 0.7) +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 4, color = "black") +
+  theme_minimal() + theme(legend.position = "none")
+
+# ANOVA subtitle 取值方式 (anova_result 是 list)
+paste("F =", round(summary(anova_result)[[1]]$`F value`[1], 2))
+```
+
+---
+
+## 🔹 回归 Regression
+
+| 函数 | 用途 | 示例 |
+|------|------|------|
+| `lm(y ~ x, data)` | 简单线性回归 | `lm(GPA ~ Study_Hours, data=df)` |
+| `lm(y ~ x1 + x2, data)` | 多元线性回归 | `lm(GPA ~ Study_Hours + college, data=df)` |
+| `summary(model)` | 查看系数、R²、F 统计量 | — |
+| `predict(model, newdata)` | 预测新值 | `predict(m, data.frame(x=8))` |
+| `tidy(model, conf.int=TRUE)` | `broom` 整洁系数表 | 含 `conf.low`, `conf.high` |
+| `ggpredict(model, terms="x")` | `ggeffects` 边际效应 | `plot(effects_hours)` |
+
+> **Dummy variable：** 含 k 个水平的 cat 变量，R 自动生成 k-1 个 dummy，==第一个字母顺序的类别为参考组==。
+> 手动改参考组：`factor(col, levels = c("新参考", ...))`，再重新拟合模型。
+
+**输出解读：**
+
+| 字段 | 含义 |
+|------|------|
+| `Intercept` | 所有预测变量 = 0 时的预测 Y |
+| `β` (slope) | X 每增加 1 单位，Y 的变化量（控制其他变量） |
+| `R²` | 模型解释的 Y 方差比例 |
+| `Adjusted R²` | 校正预测变量数量后的 R² |
+| `F-statistic` | 整体模型显著性 |
+
+**系数图 (Coefficient Plot) snippet：**
+
+```r
+library(broom)
+coef_data <- tidy(model, conf.int = TRUE) |> filter(term != "(Intercept)")
+
+ggplot(coef_data, aes(x = estimate, y = reorder(term, estimate))) +
+  geom_point(size = 3, color = "steelblue") +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.2) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  theme_minimal()
+```
+
+> ==CI 穿过 0 → 不显著 (p > .05)；不穿过 0 → 显著==。离 0 越远，效应越强。
+
+---
+
+## 🔹 广义线性模型 GLM (Generalized Linear Model)
+
+> GLM 部分标注 🔴no need for quiz / exam，了解即可。
+
+| 结果类型 | 分布 | R 函数 | 示例 |
+|---------|------|--------|------|
+| 连续型 | Normal | `lm()` | GPA、收入 |
+| 二元 (0/1) | Binomial | `glm(family=binomial)` | 通过/失败 |
+| 计数 | Poisson | `glm(family=poisson)` | 事件次数 |
+
+```r
+# Poisson 回归示例
+poisson_model <- glm(count ~ x, family = poisson, data = df)
+exp(coef(poisson_model))  # 转换为 Incident Rate Ratio (原始尺度)
+```
+
+---
+
+## 🔹 交互作用 Interaction Terms
+
+| 函数 | 用途 |
+|------|------|
+| `lm(y ~ x1 * x2, data)` | 包含交互项（同时包含主效应和交互效应） |
+| `ggpredict(model, terms = c("x1", "x2"))` | 可视化交互效应（边际效应图） |
+
+```r
+interaction_model <- lm(GPA ~ Study_Hours * Stress_Level, data = df)
+
+effects_int <- ggpredict(interaction_model, terms = c("Study_Hours", "Stress_Level"))
+plot(effects_int)
+```
+
+**交互图判读：**
+
+| 线型 | 含义 |
+|------|------|
+| 平行线 | 无交互效应，X 对 Y 的影响在各组一致 |
+| 发散/收敛 | 存在交互，效应随调节变量变化 |
+| 交叉线 | 强交互，效应方向在不同组间反转 |
+
+> `x1 * x2` 等价于 `x1 + x2 + x1:x2`，自动包含主效应。
+> 交互项系数 = 两组斜率之差（相对于参考组）。
 
 ---
 
