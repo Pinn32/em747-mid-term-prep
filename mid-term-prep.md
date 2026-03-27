@@ -3,6 +3,8 @@ start: 2026-03-18
 tags: 
     - r
     - dv
+    - da
+    - ds
 ---
 
 # 🔗 Quicklinks
@@ -865,7 +867,7 @@ paste("F =", round(summary(anova_result)[[1]]$`F value`[1], 2))
 | `lm(y ~ x, data)` | 简单线性回归 | `lm(GPA ~ Study_Hours, data=df)` |
 | `lm(y ~ x1 + x2, data)` | 多元线性回归 | `lm(GPA ~ Study_Hours + college, data=df)` |
 | `summary(model)` | 查看系数、R²、F 统计量 | — |
-| `predict(model, newdata)` | 预测新值 | `predict(m, data.frame(x=8))` |
+| `predict(model, newdata)` | 预测新值 | `predict(m, data.frame(col=8))` |
 | `tidy(model, conf.int=TRUE)` | `broom` 整洁系数表 | 含 `conf.low`, `conf.high` |
 | `ggpredict(model, terms="x")` | `ggeffects` 边际效应 | `plot(effects_hours)` |
 
