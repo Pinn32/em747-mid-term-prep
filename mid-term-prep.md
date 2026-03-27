@@ -684,6 +684,12 @@ book_tfidf <- original_books |>
 	bind_tf_idf(word, book, n)
 ```
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+
+==不考==
+
 ## 🔹 词云 Word Clouds
 
 ```r
@@ -724,6 +730,10 @@ saveWidget(my_cloud, "wordcloud.html", selfcontained = FALSE)
 # 第三步: 导出 PNG
 webshot("wordcloud.html", "wordcloud.png", delay = 5)
 ```
+
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ---
 
@@ -774,6 +784,13 @@ cor(df$col1, df$col2)
 cor.test(df$col1, df$col2) # p<.05 且 |r|>.6 的有关联
 ```
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 
+
+==不考==
+
 ### Correlation Heatmap
 
 ```r
@@ -819,6 +836,11 @@ ggplot(df, aes(x = type1, y = value, fill = type2)) +
 	)
 ```
 
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 ---
 
 # 🟢 L6-Inferential Statistics
@@ -827,15 +849,17 @@ ggplot(df, aes(x = type1, y = value, fill = type2)) +
 
 | 函数 | 用途 | 关键参数 |
 |------|------|---------|
-| `t.test(y ~ x, data)` | 独立样本 t 检验 (==只能用于 2 组 cat==) | `paired=TRUE` 配对检验 |
+| `t.test(y ~ x, data)` | 独立样本 t 检验 (==只能用于 2 组 categorical==) | `paired=TRUE` 配对检验 |
 | `aov(y ~ x, data)` | 单因素方差分析 (3+ 组) | — |
 | `summary(anova_result)` | 查看 ANOVA F 值与 p 值 (不显示配对) | — |
-| `TukeyHSD(anova_result)` | 事后检验 (Tukey HSD)，查看==配对差异== | — |
+| `TukeyHSD(anova_result)` | 事后检验 (Tukey HSD)，查看配对差异 | — |
 
 > **决策规则：** p < 0.05 → 拒绝 H₀；p ≥ 0.05 → 无法拒绝 H₀。
-> ==永远不要说 "accept H₀" / "prove null"==，只能说 "fail to reject H₀"。
+> 永远不要说 "accept H₀" / "prove null"，只能说 "fail to reject H₀"。
 
 **t-test 输出解读：**
+
+==只看两组 mean 和 p-value 即可==
 
 | 字段 | 含义 |
 |------|------|
@@ -862,6 +886,17 @@ paste("F =", round(summary(anova_result)[[1]]$`F value`[1], 2))
 
 ## 🔹 回归 Regression
 
+🔴只理解 `m <- lm(y ~ x, data = data)` , 以及 `coef(m)[[1]]` (intercept) 和 `coef(m)[[2]]` (slope) 即可
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+
 | 函数 | 用途 | 示例 |
 |------|------|------|
 | `lm(y ~ x, data)` | 简单线性回归 | `lm(GPA ~ Study_Hours, data=df)` |
@@ -871,7 +906,7 @@ paste("F =", round(summary(anova_result)[[1]]$`F value`[1], 2))
 | `tidy(model, conf.int=TRUE)` | `broom` 整洁系数表 | 含 `conf.low`, `conf.high` |
 | `ggpredict(model, terms="x")` | `ggeffects` 边际效应 | `plot(effects_hours)` |
 
-> **Dummy variable：** 含 k 个水平的 cat 变量，R 自动生成 k-1 个 dummy，==第一个字母顺序的类别为参考组==。
+> **Dummy variable：** 含 k 个水平的 cat 变量，R 自动生成 k-1 个 dummy，第一个字母顺序的类别为参考组。
 > 手动改参考组：`factor(col, levels = c("新参考", ...))`，再重新拟合模型。
 
 **输出解读：**
@@ -886,6 +921,8 @@ paste("F =", round(summary(anova_result)[[1]]$`F value`[1], 2))
 
 **系数图 (Coefficient Plot) snippet：**
 
+==不考==
+
 ```r
 library(broom)
 coef_data <- tidy(model, conf.int = TRUE) |> filter(term != "(Intercept)")
@@ -897,11 +934,13 @@ ggplot(coef_data, aes(x = estimate, y = reorder(term, estimate))) +
   theme_minimal()
 ```
 
-> ==CI 穿过 0 → 不显著 (p > .05)；不穿过 0 → 显著==。离 0 越远，效应越强。
+> CI 穿过 0 → 不显著 (p > .05)；不穿过 0 → 显著。离 0 越远，效应越强。
 
 ---
 
 ## 🔹 广义线性模型 GLM (Generalized Linear Model)
+
+==不考==
 
 > GLM 部分标注 🔴no need for quiz / exam，了解即可。
 
@@ -920,6 +959,8 @@ exp(coef(poisson_model))  # 转换为 Incident Rate Ratio (原始尺度)
 ---
 
 ## 🔹 交互作用 Interaction Terms
+
+==不考==
 
 | 函数 | 用途 |
 |------|------|
@@ -943,6 +984,17 @@ plot(effects_int)
 
 > `x1 * x2` 等价于 `x1 + x2 + x1:x2`，自动包含主效应。
 > 交互项系数 = 两组斜率之差（相对于参考组）。
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
 
 ---
 
